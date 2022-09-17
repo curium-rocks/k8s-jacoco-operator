@@ -2,7 +2,7 @@ import { describe, it, afterAll, beforeAll, expect } from '@jest/globals'
 import { CoreV1Api, KubeConfig, V1Namespace, V1Pod } from '@kubernetes/client-node'
 import { randomUUID } from 'node:crypto'
 
-const TEST_NAMESPACE = 'k8s-mutating-webhook'
+const TEST_NAMESPACE = 'k8s-jacoco-operator'
 
 describe('controllers/admission', () => {
   let client: CoreV1Api

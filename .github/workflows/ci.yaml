@@ -55,7 +55,7 @@ jobs:
      - build
     env:
       REGISTRY: 'ghcr.io'
-      IMAGE_NAME: 'curium-rocks/k8s-mutating-webhook'
+      IMAGE_NAME: 'curium-rocks/k8s-jacoco-operator'
     permissions:
       contents: read
       packages: write
@@ -127,7 +127,7 @@ jobs:
      - build-image
     env:
       REGISTRY: 'ghcr.io'
-      IMAGE_NAME: 'curium-rocks/k8s-mutating-webhook'
+      IMAGE_NAME: 'curium-rocks/k8s-jacoco-operator'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -160,10 +160,10 @@ jobs:
         run: |
           mkdir -p /tmp/failure-logs
           minikube logs > /tmp/failure-logs/minikube.log
-          kubectl logs deployments/k8s-mutating-webhook --prefix=true --ignore-errors=true --timestamps --pod-running-timeout=60s > /tmp/failure-logs/k8s-mutating-webhook.deployment.log
-          kubectl describe deployment kk8s-mutating-webhook > /tmp/failure-logs/k8s-mutating-webhook.deployment.describe
-          kubectl get deployment k8s-mutating-webhook -o yaml > /tmp/failure-logs/k8s-mutating-webhook.deployment.yaml
-          kubectl describe configmap k8s-mutating-webhook > /tmp/failure-logs/k8s-mutating-webhook.configmap.describe
+          kubectl logs deployments/k8s-jacoco-operator --prefix=true --ignore-errors=true --timestamps --pod-running-timeout=60s > /tmp/failure-logs/k8s-jacoco-operator.deployment.log
+          kubectl describe deployment kk8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.deployment.describe
+          kubectl get deployment k8s-jacoco-operator -o yaml > /tmp/failure-logs/k8s-jacoco-operator.deployment.yaml
+          kubectl describe configmap k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.configmap.describe
       - name: Upload Logs On Failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3

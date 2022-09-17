@@ -1,4 +1,4 @@
-# k8s-mutating-webhook
+# k8s-jacoco-operator
 
 ![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
@@ -17,7 +17,7 @@ A starter template for a dynamic admission mutating webhook
 | certmanager.useSelfSignedIssuer | bool | `true` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"Always"` |  |
-| image.repository | string | `"ghcr.io/curium-rocks/k8s-mutating-webhook"` |  |
+| image.repository | string | `"ghcr.io/curium-rocks/k8s-jacoco-operator"` |  |
 | image.tag | string | `"main"` |  |
 | imagePullSecrets | list | `[]` |  |
 | logLevel | string | `"info"` |  |
@@ -34,7 +34,7 @@ A starter template for a dynamic admission mutating webhook
 | serviceAccount.annotations | object | `{}` |  |
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
-| tlsSecretName | string | `"k8s-mutating-webhook"` |  |
+| tlsSecretName | string | `"k8s-jacoco-operator"` |  |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------

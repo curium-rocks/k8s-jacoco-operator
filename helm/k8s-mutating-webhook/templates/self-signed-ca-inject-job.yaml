@@ -37,7 +37,7 @@ metadata:
 rules:
 - apiGroups: ["admissionregistration.k8s.io"]
   resources: ["mutatingwebhookconfigurations"]
-  resourceNames: ["{{ include "k8s-mutating-webhook.fullname" . }}-hooks"]
+  resourceNames: ["{{ include "k8s-jacoco-operator.fullname" . }}-hooks"]
   verbs: ["get", "update", "patch"]
 
 {{- /*create sa for job*/}}
@@ -48,7 +48,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-post-install-job-sa
   labels:
-    {{- include "k8s-mutating-webhook.labels" . | nindent 4 }}
+    {{- include "k8s-jacoco-operator.labels" . | nindent 4 }}
   annotations:
     "helm.sh/hook": post-install
     "helm.sh/hook-weight": "0"
@@ -167,8 +167,8 @@ spec:
           - name: RELEASE_NAMESPACE
             value: "{{ .Release.Namespace }}"
           - name: HOOK_NAME
-            value: "{{ include "k8s-mutating-webhook.fullname" . }}-hooks"
+            value: "{{ include "k8s-jacoco-operator.fullname" . }}-hooks"
           - name: HOOK_SVC_NAME
-            value: "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc"
+            value: "{{ include "k8s-jacoco-operator.fullname" . }}.{{ .Release.Namespace }}.svc"
         command: ["/job/entry-point.sh"]
 {{- end }}

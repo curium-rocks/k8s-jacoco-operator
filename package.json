@@ -1,5 +1,5 @@
 {
-  "name": "k8s-mutating-webhook",
+  "name": "k8s-jacoco-operator",
   "version": "0.1.0",
   "description": "A starter template for creating TypeScript, Node.JS apps that interface with kubernetes",
   "main": "dist/app.js",
@@ -11,12 +11,12 @@
     "k8s:createPullSecret": "kubectl --namespace $npm_config_helm_namespace create secret docker-registry ghcr-credentials  --docker-server=ghcr.io --docker-username=$npm_config_registry_username --docker-password=$npm_config_registry_password",
     "helm:addRepos": "helm repo add jetstack https://charts.jetstack.io && helm repo update",
     "helm:deployCertManager": "helm upgrade --install --namespace cert-manager --create-namespace cert-manager jetstack/cert-manager --set installCRDs=true --debug --wait",
-    "helm:template": "helm template k8s-mutating-webhook ./helm/k8s-mutating-webhook/",
-    "helm:deploy": "helm upgrade --install k8s-mutating-webhook ./helm/k8s-mutating-webhook/ --debug --wait",
-    "helm:uninstall": "helm del k8s-mutating-webhook",
+    "helm:template": "helm template k8s-jacoco-operator ./helm/k8s-jacoco-operator/",
+    "helm:deploy": "helm upgrade --install k8s-jacoco-operator ./helm/k8s-jacoco-operator/ --debug --wait",
+    "helm:uninstall": "helm del k8s-jacoco-operator",
     "helm:uninstallCertManager": "helm del --namespace cert-manager cert-manager",
     "build": "node_modules/typescript/bin/tsc --project ./ && mkdir -p dist/config && cp src/config/*.json dist/config/",
-    "build:image": "docker build . -t ghcr.io/curium-rocks/k8s-mutating-webhook:local",
+    "build:image": "docker build . -t ghcr.io/curium-rocks/k8s-jacoco-operator:local",
     "test": "NODE_CONFIG_DIR=$PWD/src/config/:$PWD/test/config/ jest --coverage --testPathPattern='test/.*\\.spec\\.ts' --testPathIgnorePatterns='test/.*\\.e2e\\.spec\\.ts'",
     "test:e2e": "NODE_CONFIG_DIR=$PWD/src/config/:$PWD/test/config/ jest --testPathPattern='test/.*\\.e2e\\.spec\\.ts'",
     "lint": "eslint --ext .ts src/ test/",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/curium-rocks/k8s-mutating-webhook.git"
+    "url": "git+https://github.com/curium-rocks/k8s-jacoco-operator.git"
   },
   "keywords": [
     "k8s",
@@ -38,9 +38,9 @@
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/curium-rocks/k8s-mutating-webhook/issues"
+    "url": "https://github.com/curium-rocks/k8s-jacoco-operator/issues"
   },
-  "homepage": "https://github.com/curium-rocks/k8s-mutating-webhook#readme",
+  "homepage": "https://github.com/curium-rocks/k8s-jacoco-operator#readme",
   "devDependencies": {
     "@jest/globals": "29.0.3",
     "@types/config": "^3.3.0",

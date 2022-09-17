@@ -1,5 +1,5 @@
-# k8s-mutating-webhook
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-mutating-webhook&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-mutating-webhook) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-mutating-webhook&metric=coverage)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-mutating-webhook) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-mutating-webhook&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-mutating-webhook) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-mutating-webhook&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-mutating-webhook) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-mutating-webhook&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-mutating-webhook) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-mutating-webhook&metric=bugs)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-mutating-webhook)
+# k8s-jacoco-operator
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-jacoco-operator&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-jacoco-operator) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-jacoco-operator&metric=coverage)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-jacoco-operator) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-jacoco-operator&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-jacoco-operator) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-jacoco-operator&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-jacoco-operator) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-jacoco-operator&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-jacoco-operator) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=curium-rocks_k8s-jacoco-operator&metric=bugs)](https://sonarcloud.io/summary/new_code?id=curium-rocks_k8s-jacoco-operator)
 
 This template provides a kick start to making a kubernetes admission controller using TypeScript and Node.JS, uses a Mutating Webhook.
 - [Kubernetes-client/client-node](https://github.com/kubernetes-client/javascript)
@@ -44,16 +44,16 @@ helm repo add jetstack https://charts.jetstack.io && helm repo update && \
   cert-manager jetstack/cert-manager --set installCRDs=true --debug --wait
 ```
 
-Add the helm repos `helm repo add k8s https://curium-rocks.github.io/k8s-mutating-webhook` fetch updates `helm repo update`. 
+Add the helm repos `helm repo add k8s https://curium-rocks.github.io/k8s-jacoco-operator` fetch updates `helm repo update`. 
 
 Verify it worked `helm search repo k8s` and you should see something like.
 
 ```
 NAME                                                    CHART VERSION   APP VERSION     DESCRIPTION                                       
-k8s/k8s-mutating-webhook...      0.1.0           0.1.0           A starter template for a dynamic admission mut...
+k8s/k8s-jacoco-operator...      0.1.0           0.1.0           A starter template for a dynamic admission mut...
 ```
 
-Deploy the app `helm upgrade --install starter k8s/k8s-mutating-webhook`
+Deploy the app `helm upgrade --install starter k8s/k8s-jacoco-operator`
 
 Verify it worked `kubectl run testpod --image=busybox`, this will be changed, fetch it's yaml `kubectl get testpod -o yaml` you will see its `securityContext`'s have been enhanced.
 
@@ -81,4 +81,4 @@ This file maps the types defined in `./src/types.ts` to interface types. For mor
 3) [ ] Point badges in README.md to correct location for you repo
 3) [ ] Update [renovate.json](./renovate.json) to meet desired behavior for your needs, docs can be found [here](https://docs.renovatebot.com).
 4) [ ] Update this readme to reflect your project name and info
-5) [ ] Rename all `k8s-mutating-webhook` references to match your project name
+5) [ ] Rename all `k8s-jacoco-operator` references to match your project name

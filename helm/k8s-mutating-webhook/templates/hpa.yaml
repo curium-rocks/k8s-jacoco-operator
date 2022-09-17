@@ -6,14 +6,14 @@ apiVersion: autoscaling/v2beta1
 {{- end }}
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "k8s-mutating-webhook.fullname" . }}
+  name: {{ include "k8s-jacoco-operator.fullname" . }}
   labels:
-    {{- include "k8s-mutating-webhook.labels" . | nindent 4 }}
+    {{- include "k8s-jacoco-operator.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "k8s-mutating-webhook.fullname" . }}
+    name: {{ include "k8s-jacoco-operator.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

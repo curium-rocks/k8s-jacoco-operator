@@ -1,9 +1,9 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: {{ include "k8s-mutating-webhook.fullname" . }}-hooks
+  name: {{ include "k8s-jacoco-operator.fullname" . }}-hooks
 webhooks:
-- name:  {{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc
+- name:  {{ include "k8s-jacoco-operator.fullname" . }}.{{ .Release.Namespace }}.svc
   admissionReviewVersions: ["v1"]
   sideEffects: None
   timeoutSeconds: 1
@@ -23,5 +23,5 @@ webhooks:
     {{- end }}
     service:
       namespace: {{ .Release.Namespace }}
-      name: {{ include "k8s-mutating-webhook.fullname" . }}
+      name: {{ include "k8s-jacoco-operator.fullname" . }}
       path: /api/v1/admission

@@ -1,5 +1,5 @@
 apiVersion: v2
-name: k8s-mutating-webhook
+name: k8s-jacoco-operator
 description: A starter template for a dynamic admission mutating webhook
 type: application
 version: 0.3.0

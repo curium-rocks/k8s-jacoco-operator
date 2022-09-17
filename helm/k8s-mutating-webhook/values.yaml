@@ -1,11 +1,11 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/curium-rocks/k8s-mutating-webhook
+  repository: ghcr.io/curium-rocks/k8s-jacoco-operator
   pullPolicy: Always
   tag: main
 
-tlsSecretName: "k8s-mutating-webhook"
+tlsSecretName: "k8s-jacoco-operator"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

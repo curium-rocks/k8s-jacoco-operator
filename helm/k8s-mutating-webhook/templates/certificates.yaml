@@ -39,12 +39,12 @@ metadata:
   name: {{ $.Release.Name }}-tls-certificate-{{ .Values.tlsSecretName }}
 spec:
   secretName: {{ .Values.tlsSecretName }}
-  commonName: "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc"
+  commonName: "{{ include "k8s-jacoco-operator.fullname" . }}.{{ .Release.Namespace }}.svc"
   dnsNames:
-    - "{{ include "k8s-mutating-webhook.fullname" . }}"
-    - "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}"
-    - "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc"
-    - "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+    - "{{ include "k8s-jacoco-operator.fullname" . }}"
+    - "{{ include "k8s-jacoco-operator.fullname" . }}.{{ .Release.Namespace }}"
+    - "{{ include "k8s-jacoco-operator.fullname" . }}.{{ .Release.Namespace }}.svc"
+    - "{{ include "k8s-jacoco-operator.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
   usages:
     - server auth
   {{- if $.Values.certmanager.useSelfSignedIssuer }}
