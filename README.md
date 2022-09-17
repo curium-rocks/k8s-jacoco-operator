@@ -74,11 +74,3 @@ This defines symbols for each type that will be configured in the IoC container,
 
 ### [inversify.config.ts](./src/inversify.config.ts)
 This file maps the types defined in `./src/types.ts` to interface types. For more information refer to [inversify](https://github.com/inversify/InversifyJS).
-
-## After Using as Template Todo List
-1) [ ] Update Sonar Project Properties For [Sonar Cloud](https://sonarcloud.io)
-2) [ ] Add SONARQUBE_KEY secret to your repo or org if not already present
-3) [ ] Point badges in README.md to correct location for you repo
-3) [ ] Update [renovate.json](./renovate.json) to meet desired behavior for your needs, docs can be found [here](https://docs.renovatebot.com).
-4) [ ] Update this readme to reflect your project name and info
-5) [ ] Rename all `k8s-jacoco-operator` references to match your project name
