@@ -1,0 +1,174 @@
+{{- if and .Values.certmanager.enabled .Values.certmanager.useSelfSignedIssuer }}
+{{- /* Only needed if a self signed issuer is used, if user brings their own cert or uses a different issuer paradigm skip all this */}}
+
+{{- /* Create access for the hook job so it can fetch the CA Bundle and mutate the hook, 
+once this is done clean up the service account and roles, 
+leave the job and pod so logs can be retrieved easily */}}
+{{- /* In plain terms this role will be able to read secrets in the namespace*/}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-mutating-webhook-tls-reader
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "0"
+    "helm.sh/resource-policy": delete
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+rules:
+- apiGroups: [""]
+  resourceNames: ["{{ .Values.tlsSecretName }}"]
+  resources: ["secrets"]
+  verbs: ["get"]
+
+{{- /* we need to be able to mutate the validating hook, this is a cluster level/global resource, we need a clusterrole for this*/}}
+{{- /* this role can read/write validating webhooks*/}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-mutating-webhook-ca-injector
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "0"
+    "helm.sh/resource-policy": delete
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+rules:
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources: ["mutatingwebhookconfigurations"]
+  resourceNames: ["{{ include "k8s-mutating-webhook.fullname" . }}-hooks"]
+  verbs: ["get", "update", "patch"]
+
+{{- /*create sa for job*/}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-post-install-job-sa
+  labels:
+    {{- include "k8s-mutating-webhook.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "0"
+    "helm.sh/resource-policy": keep
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+
+{{- /* bind sa to roles */}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-hook-read-secrets-binding
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "1"
+    "helm.sh/resource-policy": delete
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+subjects:
+- kind: ServiceAccount
+  name:  {{ .Release.Name }}-post-install-job-sa
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role 
+  name: {{ .Release.Name }}-mutating-webhook-tls-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Name }}-hook-read-secrets-binding
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "1"
+    "helm.sh/resource-policy": delete
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+subjects:
+- kind: ServiceAccount
+  name:  {{ .Release.Name }}-post-install-job-sa
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole 
+  name: {{ .Release.Name }}-mutating-webhook-ca-injector
+  apiGroup: rbac.authorization.k8s.io
+
+{{- /* create a configmap with a shell script */}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-ca-inject-scripts
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "1"
+    "helm.sh/resource-policy": delete
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+data:
+{{ (.Files.Glob "scripts/*").AsConfig | indent 2 }}  
+{{- /* mount SA into pod */}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-ca-bundle-inject"
+  namespace: "{{ .Release.Namespace }}"
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "2"
+    "helm.sh/resource-policy": delete
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      name: "{{ .Release.Name }}"
+      namespace: "{{ .Release.Namespace }}"
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    spec:
+      securityContext:
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+      serviceAccountName: {{ .Release.Name }}-post-install-job-sa
+      restartPolicy: Never
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: script
+          configMap:
+            name: {{ .Release.Name }}-ca-inject-scripts
+            items:
+              - key: inject-ca.sh
+                path: entry-point.sh
+                mode: 0755
+      containers:
+      - volumeMounts:
+          - name: script
+            mountPath: /job/
+        name: post-install-job
+        image: "ghcr.io/curium-rocks/docker-kubectl:main"
+        imagePullPolicy: Always
+        env:
+          - name: SECRET_NAME
+            value: "{{ .Values.tlsSecretName }}"
+          - name: RELEASE_NAMESPACE
+            value: "{{ .Release.Namespace }}"
+          - name: HOOK_NAME
+            value: "{{ include "k8s-mutating-webhook.fullname" . }}-hooks"
+          - name: HOOK_SVC_NAME
+            value: "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc"
+        command: ["/job/entry-point.sh"]
+{{- end }}

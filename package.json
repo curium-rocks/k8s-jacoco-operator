@@ -1,0 +1,69 @@
+{
+  "name": "k8s-mutating-webhook",
+  "version": "0.1.0",
+  "description": "A starter template for creating TypeScript, Node.JS apps that interface with kubernetes",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "node dist/app.js",
+    "minikube:start": "minikube start --memory=4192m --disk-size=8g --cpus=2 --addons=[ingress,storage-provisioner,default-storageclass,metrics-server]",
+    "minikube:stop": "minikube stop",
+    "minikube:delete": "minikube delete",
+    "k8s:createPullSecret": "kubectl --namespace $npm_config_helm_namespace create secret docker-registry ghcr-credentials  --docker-server=ghcr.io --docker-username=$npm_config_registry_username --docker-password=$npm_config_registry_password",
+    "helm:addRepos": "helm repo add jetstack https://charts.jetstack.io && helm repo update",
+    "helm:deployCertManager": "helm upgrade --install --namespace cert-manager --create-namespace cert-manager jetstack/cert-manager --set installCRDs=true --debug --wait",
+    "helm:template": "helm template k8s-mutating-webhook ./helm/k8s-mutating-webhook/",
+    "helm:deploy": "helm upgrade --install k8s-mutating-webhook ./helm/k8s-mutating-webhook/ --debug --wait",
+    "helm:uninstall": "helm del k8s-mutating-webhook",
+    "helm:uninstallCertManager": "helm del --namespace cert-manager cert-manager",
+    "build": "node_modules/typescript/bin/tsc --project ./ && mkdir -p dist/config && cp src/config/*.json dist/config/",
+    "build:image": "docker build . -t ghcr.io/curium-rocks/k8s-mutating-webhook:local",
+    "test": "NODE_CONFIG_DIR=$PWD/src/config/:$PWD/test/config/ jest --coverage --testPathPattern='test/.*\\.spec\\.ts' --testPathIgnorePatterns='test/.*\\.e2e\\.spec\\.ts'",
+    "test:e2e": "NODE_CONFIG_DIR=$PWD/src/config/:$PWD/test/config/ jest --testPathPattern='test/.*\\.e2e\\.spec\\.ts'",
+    "lint": "eslint --ext .ts src/ test/",
+    "lint:fix": "eslint --ext .ts src/ test/ --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/curium-rocks/k8s-mutating-webhook.git"
+  },
+  "keywords": [
+    "k8s",
+    "kubernetes",
+    "starter",
+    "template",
+    "typescript",
+    "jest",
+    "inversify"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/curium-rocks/k8s-mutating-webhook/issues"
+  },
+  "homepage": "https://github.com/curium-rocks/k8s-mutating-webhook#readme",
+  "devDependencies": {
+    "@jest/globals": "29.0.3",
+    "@types/config": "^3.3.0",
+    "@types/jest": "^29.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.15.0",
+    "@typescript-eslint/parser": "^5.15.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "jest": "^29.0.0",
+    "ts-jest": "29.x.x",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2"
+  },
+  "dependencies": {
+    "@fastify/under-pressure": "^8.1.0",
+    "@kubernetes/client-node": "^0.17.0",
+    "config": "^3.3.8",
+    "fast-json-patch": "^3.1.1",
+    "fastify": "^4.5.3",
+    "fastify-plugin": "^4.2.1",
+    "inversify": "^6.0.1",
+    "reflect-metadata": "^0.1.13"
+  }
+}

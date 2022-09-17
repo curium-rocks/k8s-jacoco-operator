@@ -1,0 +1,27 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "k8s-mutating-webhook.fullname" . }}-hooks
+webhooks:
+- name:  {{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  timeoutSeconds: 1
+  failurePolicy: Ignore
+  rules:
+  - operations: ["CREATE"]
+    apiGroups: ["*"]
+    apiVersions: ["*"]
+    resources: ["*"]
+    scope: "*"
+  clientConfig:
+    {{- /* if this is an upgrade and cm is enabled, and it's a self signed issuer, enforce hookCaBundle being set */}}
+    {{- if and .Release.IsUpgrade .Values.certmanager.enabled .Values.certmanager.useSelfSignedIssuer }}
+    caBundle: {{ required "When upgrading after using a self signed issuer with certmanager you must provide the ca.crt as hookCaBundle on upgrades, otherwise api trust will break!" .Values.hookCaBundle}}
+    {{- else if .Values.hookCaBundle }}
+    caBundle: {{ .Values.hookCaBundle }}
+    {{- end }}
+    service:
+      namespace: {{ .Release.Namespace }}
+      name: {{ include "k8s-mutating-webhook.fullname" . }}
+      path: /api/v1/admission

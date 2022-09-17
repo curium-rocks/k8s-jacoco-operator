@@ -1,0 +1,61 @@
+{{- if .Values.certmanager.enabled }}
+{{- if .Values.certmanager.useSelfSignedIssuer }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Release.Name }}-cluster-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Release.Name }}-ca-certificate
+spec:
+  isCA: true
+  commonName: {{ .Release.Name }}-self-signed-ca
+  secretName: {{ .Release.Name }}-root-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: {{ .Release.Name }}-cluster-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ .Release.Name }}-issuer
+spec:
+  ca:
+    secretName: {{ .Release.Name }}-root-ca-secret
+{{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $.Release.Name }}-tls-certificate-{{ .Values.tlsSecretName }}
+spec:
+  secretName: {{ .Values.tlsSecretName }}
+  commonName: "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc"
+  dnsNames:
+    - "{{ include "k8s-mutating-webhook.fullname" . }}"
+    - "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}"
+    - "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc"
+    - "{{ include "k8s-mutating-webhook.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local"
+  usages:
+    - server auth
+  {{- if $.Values.certmanager.useSelfSignedIssuer }}
+  issuerRef:
+    name: {{ $.Release.Name }}-issuer
+    kind: Issuer
+    group: cert-manager.io
+  {{- else }}
+  issuerRef:
+    name: {{ required "certmanager.issuerName is required when not using self signed issuer" $.Values.certmanager.issuerName }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+  {{- end }}
+{{- end }}

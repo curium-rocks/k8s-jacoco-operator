@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-mutating-webhook.fullname" . }}
+  labels:
+    {{- include "k8s-mutating-webhook.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "k8s-mutating-webhook.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "k8s-mutating-webhook.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "k8s-mutating-webhook.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: {{ .Values.tlsSecretName }}
+            optional: false
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-config
+            items:
+              - key: production.json
+                path: production.json
+      containers:
+        - volumeMounts:
+          - name: tls
+            mountPath: '/var/run/secrets/tls'
+            readOnly: true
+          - name: config-volume
+            mountPath: /var/run/config/
+            readOnly: true
+          name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: NODE_CONFIG_DIR
+            value: /var/run/config:/usr/src/app/config
+          ports:
+            - name: https
+              containerPort: 3000
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: https
+          readinessProbe:
+            tcpSocket:
+              port: https
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,44 @@
+{{- if .Values.autoscaling.enabled }}
+{{- if ge (.Capabilities.KubeVersion.Minor | int) 23 }}
+apiVersion: autoscaling/v2
+{{- else }}
+apiVersion: autoscaling/v2beta1
+{{- end }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "k8s-mutating-webhook.fullname" . }}
+  labels:
+    {{- include "k8s-mutating-webhook.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "k8s-mutating-webhook.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        {{- if ge (.Capabilities.KubeVersion.Minor | int) 23 }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+        {{- else }}
+        targetAverageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+        {{- end }}
+    {{- end }}
+    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        {{- if ge (.Capabilities.KubeVersion.Minor | int) 23 }}
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+        {{- else }}
+        targetAverageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+        {{- end }}
+    {{- end }}
+{{- end }}

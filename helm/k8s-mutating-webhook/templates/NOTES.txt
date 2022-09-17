@@ -1,0 +1,12 @@
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "k8s-mutating-webhook.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- /* Print a warning about needing to update the values before upgrading */}}
+{{- if and .Values.certmanager.enabled .Values.certmanager.useSelfSignedIssuer }}
+2. A self signed issuer was used, you must fetch the ca.crt using kubectl --namespace {{ .Release.Namespace }} get secret {{ .Values.tlsSecretName }} -o jsonpath="{.data['tls\.crt']}" and provide it as a value for future upgrades.
+   For example:
+     helm --namespace {{ .Release.Namespace }} upgrade --install {{ .Release.Name }} <helm-repo-name>/k8s-mutating-webhook \
+       --set hookCaBundle=$(kubectl --namespace {{ .Release.Namespace }} get secret {{ .Values.tlsSecretName }} -o jsonpath="{.data['tls\.crt']})
+{{- end }}

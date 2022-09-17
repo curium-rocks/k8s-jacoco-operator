@@ -1,0 +1,47 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/curium-rocks/k8s-mutating-webhook
+  pullPolicy: Always
+  tag: main
+
+tlsSecretName: "k8s-mutating-webhook"
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext:
+  runAsUser: 1000
+
+logLevel: "info"
+
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "0.1"
+  limits:
+    memory: "128Mi"
+    cpu: "0.2"
+
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+certmanager:
+  enabled: true
+  useSelfSignedIssuer: true
