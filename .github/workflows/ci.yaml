@@ -161,7 +161,7 @@ jobs:
           mkdir -p /tmp/failure-logs
           minikube logs > /tmp/failure-logs/minikube.log
           kubectl logs deployments/k8s-jacoco-operator --prefix=true --ignore-errors=true --timestamps --pod-running-timeout=60s > /tmp/failure-logs/k8s-jacoco-operator.deployment.log
-          kubectl describe deployment kk8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.deployment.describe
+          kubectl describe deployment k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.deployment.describe
           kubectl get deployment k8s-jacoco-operator -o yaml > /tmp/failure-logs/k8s-jacoco-operator.deployment.yaml
           kubectl describe configmap k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.configmap.describe
       - name: Upload Logs On Failure

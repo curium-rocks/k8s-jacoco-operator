@@ -1,8 +1,8 @@
 import { describe, it, beforeAll, expect, afterAll } from '@jest/globals'
-import { CoreV1Api, V1Pod, KubeConfig, Exec, V1Status, Cp } from '@kubernetes/client-node'
+import { CoreV1Api, V1Pod, KubeConfig, Exec, V1Status } from '@kubernetes/client-node'
 import { randomUUID } from 'node:crypto'
-import { stat, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
+import { Writable, WritableOptions, Duplex, Readable, Stream } from 'node:stream'
 /**
  * This test suite uses helm to deploy the spring pet clinic test app, it then runs postman against
  * the pet client release and collects the coverage information
@@ -13,7 +13,6 @@ const TEST_POD_NAME_PREFIX = 'spring-pet-test'
 describe('spring/pet-clinic', () => {
   let client: CoreV1Api
   let exec: Exec
-  let cp: Cp
 
   async function deletePods () : Promise<unknown> {
     const pods = await client.listNamespacedPod(NAMESPACE)
@@ -38,7 +37,6 @@ describe('spring/pet-clinic', () => {
 
     client = kc.makeApiClient(CoreV1Api)
     exec = new Exec(kc)
-    cp = new Cp(kc)
     try {
       await cleanUpNamespace()
     } catch (err) {
@@ -106,16 +104,25 @@ describe('spring/pet-clinic', () => {
       console.log('Cleaning up socket')
       socket.close()
     }
-    const destDir = join('/tmp', podName)
-    const destComp = join(destDir, 'jacoco.exec')
-    await mkdir(destDir, {
-      recursive: true
+    console.log('Waiting for pod to finish restarting')
+    do {
+      pod = (await client.listNamespacedPod(NAMESPACE)).body.items.filter((p) => p.metadata?.name === podName)[0]
+    } while (!pod.status?.conditions?.some((c) => c.status === 'True' && c.type === 'Ready'))
+    console.log('Pod restarted')
+    const duResult = await new Promise<number>((resolve, reject) => {
+      let res = ''
+      const writeable = new Writable({
+        write: (chunk, encoding, done) => {
+          res += chunk
+          done()
+        }
+      })
+      writeable.on('finish', () => {
+        const parts = res.split('\t')
+        resolve(parseInt(parts[0]))
+      })
+      return exec.exec(NAMESPACE, podName, 'debug', ['/bin/du', '-b', join('/mnt/jacoco/coverage', podName, 'jacoco.exec')], writeable, process.stderr, process.stdin, true).catch(reject)
     })
-    // copy coverage data
-    // it rejects with a warning from tar becuase of the absolute path
-    await cp.cpFromPod(NAMESPACE, podName, 'debug', `/mnt/jacoco/coverage/${podName}/jacoco.exec`, destComp).catch()
-    const statResult = await stat(destComp)
-    expect(statResult.isFile()).toBeTruthy()
-    expect(statResult.size).toBeGreaterThan(0)
+    expect(duResult).toBeGreaterThan(0)
   })
 })
