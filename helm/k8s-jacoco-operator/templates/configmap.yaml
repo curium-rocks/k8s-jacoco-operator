@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-scripts
+  namespace: {{ .Release.Namespace }}
+data:
+{{ (.Files.Glob "scripts/*").AsConfig | indent 2 }}  
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+  production.json: |
+    {
+      "log": {
+        "level": "{{ .Values.logLevel }}"
+      },
+      "tls": {
+        "enabled": true
+      },
+      "agentVersion": "{{ .Values.agentVersion }}",
+      "agentPvcName": "{{ .Release.Name }}-agents",
+      "coveragePvcName": "{{ .Release.Name }}-coverage"
+    }

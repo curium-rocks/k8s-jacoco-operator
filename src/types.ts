@@ -5,9 +5,9 @@ const TYPES = {
     Logging: Symbol.for('Logging')
   },
   Config: {
-    AllowedList: Symbol.for('AllowedList'),
-    BlockedList: Symbol.for('BlockedList'),
-    StrictMode: Symbol.for('StrictMode'),
+    AgentPvc: Symbol.for('AgentPvc'),
+    CoveragePvc: Symbol.for('CoveragePvc'),
+    AgentVersion: Symbol.for('AgentVersion'),
     TLSEnabled: Symbol.for('TLSEnabled'),
     TLSKeyPath: Symbol.for('TLSKeyPath'),
     TLSCertPath: Symbol.for('TLSCertPath')

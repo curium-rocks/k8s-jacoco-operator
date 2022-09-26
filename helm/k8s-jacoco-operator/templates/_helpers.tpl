@@ -60,3 +60,44 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Agent download job spec, used in both the cron and immediate download 
+*/}}
+{{- define "k8s-jacoco-operator.downloadJobSpec" -}}
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 300
+  # Pod Template
+  template:
+    # Pod Spec
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      volumes:
+        - name: script
+          configMap:
+            name: {{ .Release.Name }}-scripts
+            items:
+              - key: download-agent.js
+                path: entry-point.js
+                mode: 0755
+        - name: agents
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-agents
+            readOnly: false
+      containers:
+      - volumeMounts:
+          - name: script
+            mountPath: /job/
+          - name: agents
+            mountPath: /mnt/jacoco
+        name: agent-downloader
+        image: node:lts-alpine
+        imagePullPolicy: Always
+        command: ["node", "/job/entry-point.js"]
+      restartPolicy: Never
+{{- end -}}

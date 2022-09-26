@@ -25,6 +25,9 @@ appContainer.bind<CoreV1Api>(TYPES.K8S.CoreApi).toDynamicValue((context: interfa
 appContainer.bind<boolean>(TYPES.Config.TLSEnabled).toConstantValue(config.get<boolean>('tls.enabled'))
 appContainer.bind<string>(TYPES.Config.TLSKeyPath).toConstantValue(config.get<string>('tls.keyPath'))
 appContainer.bind<string>(TYPES.Config.TLSCertPath).toConstantValue(config.get<string>('tls.certPath'))
+appContainer.bind<string>(TYPES.Config.AgentPvc).toConstantValue(config.get<string>('agentPvcName'))
+appContainer.bind<string>(TYPES.Config.CoveragePvc).toConstantValue(config.get<string>('coveragePvcName'))
+appContainer.bind<string>(TYPES.Config.AgentVersion).toConstantValue(config.get<string>('agentVersion'))
 
 // create pino parent logger for services to use
 appContainer.bind<Logger>(TYPES.Services.Logging).toConstantValue(pino({

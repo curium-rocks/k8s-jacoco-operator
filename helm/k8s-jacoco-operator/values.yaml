@@ -4,12 +4,13 @@ image:
   repository: ghcr.io/curium-rocks/k8s-jacoco-operator
   pullPolicy: Always
   tag: main
-
+agentVersion: 0.8.8
 tlsSecretName: "k8s-jacoco-operator"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
-
+targetNamespaces:
+- "{{ .Release.Namespace }}"
 serviceAccount:
   create: true
   annotations: {}

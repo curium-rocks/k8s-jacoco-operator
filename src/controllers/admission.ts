@@ -11,7 +11,9 @@ export function AdmissionController (instance: FastifyInstance, opts: FastifyPlu
 
   instance.post('/', async (req, reply) => {
     const body: any = req.body
-    if (body.kind === 'AdmissionReview' && body.request.operation === 'CREATE' && body.request.kind.kind === 'Pod') {
+    if (body.kind === 'AdmissionReview' && body.request.operation === 'CREATE' && body.request.kind.kind === 'Pod' &&
+      body.request.object.metadata && body.request.object.metadata.annotations &&
+      body.request.object.metadata.annotations['jacoco-operator.curium.rocks/inject'] === 'true') {
       const newPod: V1Pod = body.request.object
       const patch = await admissionService.admit(newPod)
       instance.log.info('Generated patch = %s', patch)
@@ -31,7 +33,9 @@ export function AdmissionController (instance: FastifyInstance, opts: FastifyPlu
         kind: 'AdmissionReview',
         response: {
           uid: body.request.uid,
-          allowed: true
+          allowed: true,
+          patch: Buffer.from('[]').toString('base64'),
+          patchType: 'JSONPatch'
         }
       })
     }

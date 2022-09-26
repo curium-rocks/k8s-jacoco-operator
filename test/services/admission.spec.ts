@@ -8,9 +8,15 @@ describe('services/admission', () => {
   const pinoLogger = pino({
     level: 'error'
   })
-  it('Should mutate to a more secure setting', async () => {
-    const service = new Admission(pinoLogger)
+  it('Should mutate pod with annotations', async () => {
+    const service = new Admission(pinoLogger, 'agent-pvc', 'jacoco-coverage', '0.8.8')
     const newPod: V1Pod = {
+      metadata: {
+        annotations: {
+          'jacoco-operator.curium.rocks/inject': 'true',
+          'jacoco-operator.curium.rocks/target-containers': 'test'
+        }
+      },
       spec: {
         containers: [{
           name: 'test',
@@ -19,10 +25,10 @@ describe('services/admission', () => {
       }
     }
     const patch = await service.admit(newPod)
-    expect(patch).toEqual('[{"op":"add","path":"/spec/containers/0/securityContext","value":{"allowPrivilegeEscalation":false,"privileged":false,"readOnlyRootFilesystem":true,"runAsNonRoot":true}},{"op":"add","path":"/spec/securityContext","value":{"runAsNonRoot":true}}]')
+    expect(patch).toEqual('[{"op":"add","path":"/spec/containers/0/volumeMounts","value":[{"name":"jacoco-coverage","mountPath":"/mnt/jacoco/coverage"},{"name":"jacoco-agent","mountPath":"/mnt/jacoco/agent"}]},{"op":"add","path":"/spec/containers/0/env","value":[{"name":"JAVA_TOOL_OPTIONS","value":"-javaagent:/mnt/jacoco/agent/0.8.8/jacoco.jar"}]},{"op":"add","path":"/spec/volumes","value":[{"name":"jacoco-agent","persistentVolumeClaim":{"claimName":"agent-pvc","readOnly":true}},{"name":"jacoco-coverage","persistentVolumeClaim":{"claimName":"jacoco-coverage","readOnly":false}}]}]')
   })
-  it('Should not mutate already secure pod', async () => {
-    const service = new Admission(pinoLogger)
+  it('Should not pod without annotation', async () => {
+    const service = new Admission(pinoLogger, 'agent-pvc', 'jacoco-coverage', '0.8.8')
     const newPod: V1Pod = {
       spec: {
         securityContext: {

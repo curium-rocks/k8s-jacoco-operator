@@ -8,12 +8,21 @@ webhooks:
   sideEffects: None
   timeoutSeconds: 1
   failurePolicy: Ignore
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: "In"
+      values:
+      {{- range .Values.targetNamespaces }}
+      - "{{ tpl . $ }}"
+      {{- end }}
   rules:
   - operations: ["CREATE"]
     apiGroups: ["*"]
     apiVersions: ["*"]
-    resources: ["*"]
-    scope: "*"
+    resources: ["pods"]
+    # Scope to namespace
+    scope: "Namespaced"
   clientConfig:
     {{- /* if this is an upgrade and cm is enabled, and it's a self signed issuer, enforce hookCaBundle being set */}}
     {{- if and .Release.IsUpgrade .Values.certmanager.enabled .Values.certmanager.useSelfSignedIssuer }}

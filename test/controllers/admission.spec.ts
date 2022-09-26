@@ -23,7 +23,7 @@ describe('controllers/admission', () => {
   beforeEach(() => {
     fastify = Fastify()
     container = new Container()
-    mockAdmissionService = jest.mocked<IAdmission>(new Admission(pino({ level: 'error' })))
+    mockAdmissionService = jest.mocked<IAdmission>(new Admission(pino({ level: 'error' }), 'agent-pvc', 'jacoco-coverage', '0.8.8'))
     container.bind<IAdmission>(TYPES.Services.Admission).toConstantValue(mockAdmissionService)
     fastify.register(fastifyInversifyPlugin, {
       container
@@ -32,15 +32,19 @@ describe('controllers/admission', () => {
       prefix: '/api/v1/admission'
     })
   })
-  it('Should patch pods when needed', async () => {
+  it('Should mutate pods that opt in', async () => {
     jest.spyOn(mockAdmissionService, 'admit').mockImplementation((pod: V1Pod) => {
       const observer = jsonpatch.observe<V1Pod>(pod)
       if (!pod.metadata) pod.metadata = {}
-      if (!pod.metadata.annotations) pod.metadata.annotations = {}
-      pod.metadata.annotations.test = 'test'
+      pod.metadata.annotations = {
+        test: 'test'
+      }
       return Promise.resolve(JSON.stringify(jsonpatch.generate(observer)))
     })
     const payload = buildCreatePodRequest('busybox')
+    payload.request.object.metadata.annotations = {
+      'jacoco-operator.curium.rocks/inject': 'true'
+    }
     const result = await fastify.inject({
       method: 'POST',
       payload,
@@ -50,10 +54,9 @@ describe('controllers/admission', () => {
     const responseBody = JSON.parse(result.body)
     expect(responseBody.response.uid).toEqual(payload.request.uid)
     expect(responseBody.response.allowed).toBeTruthy()
-    const patch = Buffer.from(responseBody.response.patch, 'base64').toString()
-    expect(patch).toEqual('[{"op":"add","path":"/metadata/annotations","value":{"test":"test"}}]')
+    expect(responseBody.response.patch).toEqual(Buffer.from('[{"op":"remove","path":"/metadata/annotations/jacoco-operator.curium.rocks~1inject"},{"op":"add","path":"/metadata/annotations/test","value":"test"}]').toString('base64'))
   })
-  it('Should only mutate pods when required', async () => {
+  it('Should not mutate pods that do not opt in', async () => {
     jest.spyOn(mockAdmissionService, 'admit').mockImplementation((pod: V1Pod) => {
       const observer = jsonpatch.observe<V1Pod>(pod)
       return Promise.resolve(JSON.stringify(jsonpatch.generate(observer)))

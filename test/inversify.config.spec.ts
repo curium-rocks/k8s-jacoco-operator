@@ -18,4 +18,13 @@ describe('inversify.config', () => {
   it('binds Admission Service', () => {
     expect(appContainer.isBound(TYPES.Services.Admission)).toBeTruthy()
   })
+  it('binds Agent Version Configuration', () => {
+    expect(appContainer.isBound(TYPES.Config.AgentVersion))
+  })
+  it('binds Agent PVC Name Configuration', () => {
+    expect(appContainer.isBound(TYPES.Config.AgentPvc))
+  })
+  it('binds Coverage PVC Name Configuration', () => {
+    expect(appContainer.isBound(TYPES.Config.CoveragePvc))
+  })
 })

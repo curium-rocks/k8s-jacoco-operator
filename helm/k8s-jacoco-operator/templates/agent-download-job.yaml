@@ -1,0 +1,6 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-agent-download-job
+  namespace: {{ .Release.Namespace }}
+{{ include "k8s-jacoco-operator.downloadJobSpec" . }}
