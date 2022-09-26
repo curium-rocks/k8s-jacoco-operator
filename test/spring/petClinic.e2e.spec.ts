@@ -2,7 +2,7 @@ import { describe, it, beforeAll, expect, afterAll } from '@jest/globals'
 import { CoreV1Api, V1Pod, KubeConfig, Exec, V1Status } from '@kubernetes/client-node'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
-import { Writable, WritableOptions, Duplex, Readable, Stream } from 'node:stream'
+import { Writable } from 'node:stream'
 /**
  * This test suite uses helm to deploy the spring pet clinic test app, it then runs postman against
  * the pet client release and collects the coverage information
