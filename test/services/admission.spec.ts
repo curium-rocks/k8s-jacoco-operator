@@ -25,7 +25,7 @@ describe('services/admission', () => {
       }
     }
     const patch = await service.admit(newPod)
-    expect(patch).toEqual('[{"op":"add","path":"/spec/containers/0/volumeMounts","value":[{"name":"jacoco-coverage","mountPath":"/mnt/jacoco/coverage"},{"name":"jacoco-agent","mountPath":"/mnt/jacoco/agent"}]},{"op":"add","path":"/spec/containers/0/env","value":[{"name":"JAVA_TOOL_OPTIONS","value":"-javaagent:/mnt/jacoco/agent/0.8.8/jacoco.jar"}]},{"op":"add","path":"/spec/volumes","value":[{"name":"jacoco-agent","persistentVolumeClaim":{"claimName":"agent-pvc","readOnly":true}},{"name":"jacoco-coverage","persistentVolumeClaim":{"claimName":"jacoco-coverage","readOnly":false}}]}]')
+    expect(patch).toEqual('[{"op":"add","path":"/spec/containers/0/volumeMounts","value":[{"name":"jacoco-coverage","mountPath":"/mnt/jacoco/coverage"},{"name":"jacoco-agent","mountPath":"/mnt/jacoco/agent"}]},{"op":"add","path":"/spec/containers/0/env","value":[{"name":"JAVA_TOOL_OPTIONS","value":"-javaagent:/mnt/jacoco/agent/0.8.8/jacoco.jar=destfile=/mnt/jacoco/coverage/undefined/jacoco.exec"}]},{"op":"add","path":"/spec/volumes","value":[{"name":"jacoco-agent","persistentVolumeClaim":{"claimName":"agent-pvc","readOnly":true}},{"name":"jacoco-coverage","persistentVolumeClaim":{"claimName":"jacoco-coverage","readOnly":false}}]}]')
   })
   it('Should not pod without annotation', async () => {
     const service = new Admission(pinoLogger, 'agent-pvc', 'jacoco-coverage', '0.8.8')
