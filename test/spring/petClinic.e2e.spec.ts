@@ -93,12 +93,17 @@ describe('spring/pet-clinic', () => {
     let socket: any
     const execResult = await new Promise<V1Status>((resolve, reject) => {
       console.log('Restarting API service')
-      return exec.exec(NAMESPACE, podName, 'api', ['/bin/kill', '-s', 'SIGINT', '1'], process.stdout, process.stderr, process.stdin, true, (stat:V1Status) => {
-        console.log('Finished exec')
-        resolve(stat)
-      }).then((s) => {
-        socket = s
-      }).catch(reject)
+      try {
+        return exec.exec(NAMESPACE, podName, 'api', ['/bin/kill', '-s', 'SIGINT', '1'], process.stdout, process.stderr, process.stdin, true, (stat:V1Status) => {
+          console.log('Finished exec')
+          resolve(stat)
+        }).then((s) => {
+          socket = s
+        }).catch(reject)
+      } catch (err) {
+        console.error(err)
+        reject(err)
+      }
     })
     expect(execResult).toBeDefined()
     if (socket) {
