@@ -65,7 +65,7 @@ describe('spring/pet-clinic', () => {
         containers: [{
           name: 'api',
           image: 'ghcr.io/curium-rocks/spring-petclinic:latest', // multi-arch spring petclinc image
-          imagePullPolicy: 'IfNotPresent'
+          imagePullPolicy: 'Always'
         }, {
           name: 'debug',
           image: 'busybox:latest',
@@ -92,6 +92,7 @@ describe('spring/pet-clinic', () => {
     // shutdown/restart container
     let socket: any
     const execResult = await new Promise<V1Status>((resolve, reject) => {
+      console.log('Restarting API service')
       return exec.exec(NAMESPACE, podName, 'api', ['/bin/kill', '-s', 'SIGINT', '1'], process.stdout, process.stderr, process.stdin, true, (stat:V1Status) => {
         console.log('Finished exec')
         resolve(stat)
