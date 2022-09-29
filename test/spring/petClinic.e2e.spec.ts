@@ -99,9 +99,12 @@ describe('spring/pet-clinic', () => {
           resolve(stat)
         }).then((s) => {
           socket = s
-        }).catch(reject)
+        }).catch((err) => {
+          console.error('Error while executing: ' + err)
+          reject(err)
+        })
       } catch (err) {
-        console.error(err)
+        console.error('Error while executing sync' + err)
         reject(err)
       }
     })
