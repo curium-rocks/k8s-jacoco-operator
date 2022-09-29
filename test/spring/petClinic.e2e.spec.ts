@@ -88,6 +88,9 @@ describe('spring/pet-clinic', () => {
       pod = (await client.listNamespacedPod(NAMESPACE)).body.items.filter((p) => p.metadata?.name === podName)[0]
     } while (!pod.status?.conditions?.some((c) => c.status === 'True' && c.type === 'Ready'))
     console.log('Pod ready')
+
+    // add a sleep just in case the timing is off with pulling
+    await new Promise((resolve) => setTimeout(resolve, 25000))
     // run tests
     // shutdown/restart container
     let socket: any
