@@ -122,7 +122,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        k8s-version: [1.22.13, 1.23.10, 1.24.4, 1.25.0]
+        k8s-version: [1.22, 1.23, 1.24, 1.25]
     needs:
      - build-image
     env:
@@ -138,8 +138,13 @@ jobs:
           cache: 'npm'
       - name: Install Dependencies
         run: npm ci
-      - name: Start Minikube
-        run: npm run minikube:start -- --kubernetes-version=${{ matrix.k8s-version }}
+      - name: Spin Up MicroK8S
+        run: |
+          sudo snap install microk8s --classic --channel=${{ matrix.k8s-version }}/stable
+          sudo microk8s enable dns storage rbac ingress
+          sudo microk8s status --wait-ready
+          sudo microk8s kubectl rollout status deployment/hostpath-provisioner -n kube-system
+          sudo snap install kubectl --classic
       - name: Create Pull Secret
         run: npm run k8s:createPullSecret --helm_namespace=default --registry_username=${{ github.actor }} --registry_password=${{ github.token }}
       - name: Add Helm Repos
@@ -159,7 +164,6 @@ jobs:
         if: ${{ failure() }}
         run: |
           mkdir -p /tmp/failure-logs
-          minikube logs > /tmp/failure-logs/minikube.log
           kubectl logs deployments/k8s-jacoco-operator --prefix=true --ignore-errors=true --timestamps --pod-running-timeout=60s > /tmp/failure-logs/k8s-jacoco-operator.deployment.log
           kubectl describe deployment k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.deployment.describe
           kubectl get deployment k8s-jacoco-operator -o yaml > /tmp/failure-logs/k8s-jacoco-operator.deployment.yaml
