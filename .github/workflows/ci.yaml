@@ -144,6 +144,8 @@ jobs:
           sudo microk8s enable dns storage rbac ingress
           sudo microk8s status --wait-ready
           sudo microk8s kubectl rollout status deployment/hostpath-provisioner -n kube-system
+          mkdir -p ~/.kube
+          sudo microk8s config > ~/.kube/config
           sudo snap install kubectl --classic
       - name: Create Pull Secret
         run: npm run k8s:createPullSecret --helm_namespace=default --registry_username=${{ github.actor }} --registry_password=${{ github.token }}
