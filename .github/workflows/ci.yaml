@@ -170,6 +170,8 @@ jobs:
           kubectl describe deployment k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.deployment.describe
           kubectl get deployment k8s-jacoco-operator -o yaml > /tmp/failure-logs/k8s-jacoco-operator.deployment.yaml
           kubectl describe configmap k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.configmap.describe
+          inspectTarball=$(sudo microk8s inspect | grep -Po "/var/snap/microk8s/.*\.tar\.gz")
+          sudo cp $inspectTarball /tmp/failure-logs/
       - name: Upload Logs On Failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
