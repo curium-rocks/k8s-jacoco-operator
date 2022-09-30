@@ -176,7 +176,7 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ runner.name }} minikube logs
+          name: ${{ runner.name }} microk8s logs
           path: |
             /tmp/failure-logs
   publish-chart:
