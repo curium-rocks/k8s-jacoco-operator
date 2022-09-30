@@ -1,6 +1,6 @@
 # k8s-jacoco-operator
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.1.0](https://img.shields.io/badge/AppVersion-0.1.0-informational?style=flat-square)
 
 A starter template for a dynamic admission mutating webhook
 
@@ -9,6 +9,7 @@ A starter template for a dynamic admission mutating webhook
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
+| agentVersion | string | `"0.8.8"` |  |
 | autoscaling.enabled | bool | `true` |  |
 | autoscaling.maxReplicas | int | `10` |  |
 | autoscaling.minReplicas | int | `2` |  |
@@ -34,6 +35,7 @@ A starter template for a dynamic admission mutating webhook
 | serviceAccount.annotations | object | `{}` |  |
 | serviceAccount.create | bool | `true` |  |
 | serviceAccount.name | string | `""` |  |
+| targetNamespaces[0] | string | `"{{ .Release.Namespace }}"` |  |
 | tlsSecretName | string | `"k8s-jacoco-operator"` |  |
 | tolerations | list | `[]` |  |
 
