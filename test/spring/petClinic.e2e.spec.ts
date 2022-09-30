@@ -65,7 +65,7 @@ describe('spring/pet-clinic', () => {
         containers: [{
           name: 'api',
           image: 'ghcr.io/curium-rocks/spring-petclinic:latest', // multi-arch spring petclinc image
-          imagePullPolicy: 'IfNotPresent'
+          imagePullPolicy: 'Always'
         }, {
           name: 'debug',
           image: 'busybox:latest',
@@ -88,22 +88,17 @@ describe('spring/pet-clinic', () => {
       pod = (await client.listNamespacedPod(NAMESPACE)).body.items.filter((p) => p.metadata?.name === podName)[0]
     } while (!pod.status?.conditions?.some((c) => c.status === 'True' && c.type === 'Ready'))
     console.log('Pod ready')
-    // run tests
+
     // shutdown/restart container
-    let socket: any
-    const execResult = await new Promise<V1Status>((resolve, reject) => {
-      return exec.exec(NAMESPACE, podName, 'api', ['/bin/kill', '-s', 'SIGINT', '1'], process.stdout, process.stderr, process.stdin, true, (stat:V1Status) => {
-        console.log('Finished exec')
-        resolve(stat)
-      }).then((s) => {
-        socket = s
-      }).catch(reject)
+
+    // not ideal, await isn't resolving in ci, fire it and add a sleep for a few seconds
+    exec.exec(NAMESPACE, podName, 'api', ['/bin/kill', '-s', 'SIGINT', '1'], process.stdout, process.stderr, process.stdin, true, (stat:V1Status) => {
+      console.log('Finished exec')
+    }).catch((err) => {
+      console.error('Error while executing: ' + err)
     })
-    expect(execResult).toBeDefined()
-    if (socket) {
-      console.log('Cleaning up socket')
-      socket.close()
-    }
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+
     console.log('Waiting for pod to finish restarting')
     do {
       pod = (await client.listNamespacedPod(NAMESPACE)).body.items.filter((p) => p.metadata?.name === podName)[0]
