@@ -27,7 +27,13 @@ Deploy the operator `helm upgrade --install jacoco-operator k8s/k8s-jacoco-opera
 Once you've deployed the operator you can add the following annotations to your pods in the same namespace and they
 will have the jacoco agent copied in and the appropriate env vars set so the agent used and the code is instrumented.
 
+``` yaml
+jacoco-operator.curium.rocks/inject: 'true',
+jacoco-operator.curium.rocks/target-containers: 'api'
+```
 
+Coverage data will be saved to a PVC on process exit, you can force this with a rollout on a deployment or 
+using exec to send a SIGINT signal to the process.
 
 ## NPM Scripts
 The following scripts are included in the NPM project configuration
