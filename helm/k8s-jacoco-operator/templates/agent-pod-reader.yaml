@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Release.Name }}-file-access
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000    
+  volumes:
+  - name: agents
+    persistentVolumeClaim:
+      claimName: {{ .Release.Name }}-agents
+      readOnly: true
+  - name: coverage
+    persistentVolumeClaim:
+      claimName: {{ .Release.Name }}-coverage
+      readOnly: true
+  containers:
+  - volumeMounts:
+    - name: agents
+      mountPath: /mnt/jacoco/agents
+    - name: coverage
+      mountPath: /mnt/jacoco/coverage
+    name: reader
+    image: busybox
+    command: ['sleep', '3600s']

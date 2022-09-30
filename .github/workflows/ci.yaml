@@ -1,0 +1,208 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run build --if-present
+    - run: npm run lint --if-present
+    - run: npm test
+    - uses: actions/upload-artifact@v3
+      if: ${{ matrix.node-version == '16.x' }}
+      with:
+        name: coverage
+        path: |
+          coverage
+  sonar:
+    runs-on: ubuntu-latest
+    needs:
+    - build
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    - uses: actions/download-artifact@v3
+      with:
+        name: coverage
+        path: coverage
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        SONAR_TOKEN: ${{ secrets.SONARQUBE_KEY }}
+  build-image:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    needs:
+     - build
+    env:
+      REGISTRY: 'ghcr.io'
+      IMAGE_NAME: 'curium-rocks/k8s-jacoco-operator'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install cosign
+        uses: sigstore/cosign-installer@f3c664df7af409cb4873aa5068053ba9d61a57b6
+        with:
+          cosign-release: 'v1.11.0'
+      # for multi arch container builds
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+        with:
+          platforms: all
+      - name: Setup Docker buildx
+        id: buildx
+        timeout-minutes: 4
+        uses: docker/setup-buildx-action@f385c9ed953addec511152eb20a6021fe3d09fe6
+      - name: Log into registry
+        timeout-minutes: 5
+        uses: docker/login-action@21f251affc0769ccac8a1cf17e937592fb492337
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract Docker metadata
+        id: meta
+        timeout-minutes: 5
+        uses: docker/metadata-action@59bc9ddfd5a31eb6f5b55e89b65578fe3bbba85e
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            type=raw,value={{date 'YYYYMMDD'}}-{{sha}}
+      - name: Build Docker image
+        id: push
+        timeout-minutes: 25
+        uses: docker/build-push-action@e27bcee4eb9e7b4bc168418e3364c4482120393a
+        with:
+          context: .
+          load: false
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64, linux/arm64
+      - name: Sign the published Docker image
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign --force --recursive ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}
+  # deploy it and verify that expected things are allowed or disallowed
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        k8s-version: [1.22, 1.23, 1.24, 1.25]
+    needs:
+     - build-image
+    env:
+      REGISTRY: 'ghcr.io'
+      IMAGE_NAME: 'curium-rocks/k8s-jacoco-operator'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      - name: Install Dependencies
+        run: npm ci
+      - name: Spin Up MicroK8S
+        run: |
+          sudo snap install microk8s --classic --channel=${{ matrix.k8s-version }}/stable
+          sudo microk8s enable dns storage rbac ingress
+          sudo microk8s status --wait-ready
+          sudo microk8s kubectl rollout status deployment/hostpath-provisioner -n kube-system
+          mkdir -p ~/.kube
+          sudo microk8s config > ~/.kube/config
+          sudo snap install kubectl --classic
+      - name: Create Pull Secret
+        run: npm run k8s:createPullSecret --helm_namespace=default --registry_username=${{ github.actor }} --registry_password=${{ github.token }}
+      - name: Add Helm Repos
+        run: npm run helm:addRepos
+      - name: Deploy CertManager
+        run: npm run helm:deployCertManager
+      - name: Deploy (PR)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: npm run helm:deploy -- --set 'imagePullSecrets[0].name'=ghcr-credentials --set image.tag=pr-${{ github.event.number }}
+      - name: Deploy (Branch)
+        if: ${{ github.event_name != 'pull_request' }}
+        timeout-minutes: 10
+        run: npm run helm:deploy -- --set 'imagePullSecrets[0].name'=ghcr-credentials --set image.tag=main
+      - name: Run E2E Tests
+        run: npm run test:e2e
+      - name: Collect Logs On Failure
+        if: ${{ failure() }}
+        run: |
+          mkdir -p /tmp/failure-logs
+          kubectl logs deployments/k8s-jacoco-operator --prefix=true --ignore-errors=true --timestamps --pod-running-timeout=60s > /tmp/failure-logs/k8s-jacoco-operator.deployment.log
+          kubectl describe deployment k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.deployment.describe
+          kubectl get deployment k8s-jacoco-operator -o yaml > /tmp/failure-logs/k8s-jacoco-operator.deployment.yaml
+          kubectl describe configmap k8s-jacoco-operator > /tmp/failure-logs/k8s-jacoco-operator.configmap.describe
+          inspectTarball=$(sudo microk8s inspect | grep -Po "/var/snap/microk8s/.*\.tar\.gz")
+          sudo cp $inspectTarball /tmp/failure-logs/
+      - name: Upload Logs On Failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.name }} microk8s logs
+          path: |
+            /tmp/failure-logs
+  publish-chart:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs:
+    - verify
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write     
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.8.1
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.4.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: helm

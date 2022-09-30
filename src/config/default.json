@@ -1,0 +1,13 @@
+{
+  "tls": {
+    "enabled": false,
+    "keyPath": "/var/run/secrets/tls/tls.key",
+    "certPath": "/var/run/secrets/tls/tls.crt"
+  },
+  "log": {
+    "level": "info"
+  },
+  "agentVersion": "0.8.8",
+  "agentPvcName": "k8s-jacoco-operator-agents",
+  "coveragePvcName": "k8s-jacoco-operator-coverage"
+}
