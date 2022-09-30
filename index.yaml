@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  k8s-jacoco-operator:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2022-09-30T01:15:28.587311528Z"
+    description: A starter template for a dynamic admission mutating webhook
+    digest: dc1e103b9070a4cb0e24f7027e92ea2a9b8a478819315d3903905b7618df94ff
+    name: k8s-jacoco-operator
+    type: application
+    urls:
+    - https://github.com/curium-rocks/k8s-jacoco-operator/releases/download/k8s-jacoco-operator-0.4.0/k8s-jacoco-operator-0.4.0.tgz
+    version: 0.4.0
+generated: "2022-09-30T01:15:28.587321828Z"
