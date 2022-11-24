@@ -61,7 +61,7 @@
     "@kubernetes/client-node": "^0.17.0",
     "config": "^3.3.8",
     "fast-json-patch": "^3.1.1",
-    "fastify": "^4.8.1",
+    "fastify": "^4.10.2",
     "fastify-plugin": "^4.2.1",
     "inversify": "^6.0.1",
     "reflect-metadata": "^0.1.13"
