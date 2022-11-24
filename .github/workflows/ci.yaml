@@ -67,7 +67,7 @@ jobs:
       - name: Install cosign
         uses: sigstore/cosign-installer@7bca8b41164994a7dc93749d266e2f1db492f8a2
         with:
-          cosign-release: 'v1.11.0'
+          cosign-release: 'v1.13.1'
       # for multi arch container builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@master
