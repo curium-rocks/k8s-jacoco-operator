@@ -101,7 +101,7 @@ jobs:
       - name: Build Docker image
         id: push
         timeout-minutes: 25
-        uses: docker/build-push-action@175d02bffea74695e96b351069ac938b338802f9
+        uses: docker/build-push-action@d235d2d5ea6fb6173c610daf5059b397a4f8be0d
         with:
           context: .
           load: false
