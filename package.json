@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/curium-rocks/k8s-jacoco-operator#readme",
   "devDependencies": {
-    "@jest/globals": "29.6.2",
+    "@jest/globals": "29.6.3",
     "@types/config": "^3.3.0",
     "@types/jest": "^29.0.0",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
