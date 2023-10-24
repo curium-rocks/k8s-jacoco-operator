@@ -79,7 +79,7 @@ jobs:
         uses: docker/setup-buildx-action@5d9862498505fcac67b9f455d6e94ec0339f7b90
       - name: Log into registry
         timeout-minutes: 5
-        uses: docker/login-action@b4bedf8053341df3b5a9f9e0f2cf4e79e27360c6
+        uses: docker/login-action@7137ecbd587e9331e068c80ad54b57e873403052
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
