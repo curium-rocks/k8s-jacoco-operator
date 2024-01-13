@@ -25,7 +25,7 @@ jobs:
     - run: npm run build --if-present
     - run: npm run lint --if-present
     - run: npm test
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: ${{ matrix.node-version == '16.x' }}
       with:
         name: coverage
@@ -174,7 +174,7 @@ jobs:
           sudo cp $inspectTarball /tmp/failure-logs/
       - name: Upload Logs On Failure
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ runner.name }} microk8s logs
           path: |
