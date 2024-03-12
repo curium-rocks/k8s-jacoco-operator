@@ -15,7 +15,7 @@ jobs:
         node-version: [16.x, 18.x]
 
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -36,7 +36,7 @@ jobs:
     needs:
     - build
     steps:
-    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+    - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4
       with:
         fetch-depth: 0
     - uses: actions/download-artifact@v4
@@ -63,7 +63,7 @@ jobs:
       security-events: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4
       - name: Install cosign
         uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
         with:
@@ -130,7 +130,7 @@ jobs:
       IMAGE_NAME: 'curium-rocks/k8s-jacoco-operator'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4
       - name: Use Node.js 18
         uses: actions/setup-node@v4
         with:
@@ -189,7 +189,7 @@ jobs:
       contents: write     
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4
         with:
           fetch-depth: 0
       - name: Configure Git
