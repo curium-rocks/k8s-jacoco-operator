@@ -46,3 +46,11 @@ affinity: {}
 certmanager:
   enabled: true
   useSelfSignedIssuer: true
+
+pvc:
+  agents:
+    storageClassName: "ebs-gp3"
+    storage: 2Gi
+  coverage:
+    storageClassName: "ebs-gp3"
+    storage: 2Gi
